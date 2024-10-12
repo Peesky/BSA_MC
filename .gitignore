@@ -1,0 +1,12 @@
+# Ignorer les fichiers de configuration générés
+Move.lock
+
+# Ignorer les répertoires de build
+build/
+
+# Ignorer les fichiers de test générés
+*.mv
+*.mvsm
+
+# Ignorer les fichiers de dépendances
+dependencies/
