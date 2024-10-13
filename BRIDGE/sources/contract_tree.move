@@ -1,47 +1,42 @@
 module bridge::contract_tree {
 
     use sui::tx_context::TxContext;
-    use bridge::credit::{Credit, get_credit_state, get_credit_risk, CreditState};
+    use bridge::credit::{Credit, get_credit_state, get_credit_risk, get_credit_amount, CreditState};
     use bridge::pool::{Pool, create_pool, add_credit, add_investment, get_pool_state, get_pool_credits};
 
     const RISK_MARGIN: u64 = 5;
+    const TARGET_RISK: u64 = 90;
 
     /// Function to find compatible credits based on risk and create a pool
-    public fun group_credits_by_risk(credits: vector<bridge::credit::Credit>, threshold: u64, ctx: &mut TxContext): Pool {
-        let mut pool = create_pool(threshold, ctx);
-        let mut total_risk = 0;
-        let mut i = 0;
-        while (i < vector::length<bridge::credit::Credit>(credits)) {
-            let credit = &mut credits[i];
-            let risk = get_credit_risk(&credit);
-            total_risk = total_risk + risk /vector::length(credits);
+    public fun group_credits_by_90(credits: vector<bridge::credit::Credit>, ctx: &mut TxContext): Pool {
+        let mut i: u64 = 0;
+        let lower_bound: u64 = TARGET_RISK - RISK_MARGIN;
+        let upper_bound: u64 = TARGET_RISK + RISK_MARGIN;
+        let mut new_treshold: u64 = 0;
+        // on crée une copie du vector de credits
+        let mut credits_vector_ID_copy:vector<Credit> = vector[]; 
+        let mut new_credits_vector: vector<Credit> = vector::empty<Credit>();
+
+        while (i < vector::length(&credits)) {
+            let credit = credits[i];	
+            let credit_risk = get_credit_risk(&credit);
+            if (credit_risk >= lower_bound && credit_risk <= upper_bound) {
+                new_treshold = new_treshold + get_credit_amount(&credit);
+                //ajoute le credit dans le new credits vector
+                credits_vector_ID_copy.push_back(credit);
+                };
             i = i + 1;
-            
-    }
-
-    // Ouvre le pool après avoir ajouté les crédits
-    open_pool(&mut pool);
-    pool
-}
-
-
-    /// Helper function to calculate the absolute difference between two values
-    public fun abs_diff(a: u64, b: u64): u64 {
-        if (a > b) a - b else b - a
-    }
-
-    /// Function to manage the investment process
-    public fun invest_in_pool(pool: &mut Pool, creditor: address, amount: u64) {
-        add_investment(pool, creditor, amount);
-
-        if (get_pool_state(&pool) == bridge::pool::PoolState::Closed) {
-            let credits = get_pool_credits(&pool);
-            let mut i = 0;
-            while (i < vector::length(credits)) {
-                let credit = vector::borrow_mut(credits, i);
-                credit.state = CreditState::OnGoing;
-                i = i + 1;
-            }
-        }
+        };
+        
+        let mut pool = create_pool(new_treshold, ctx);
+        let mut j: u64 = 0;
+        while (j < vector::length(&new_credits_vector)) {
+            add_credit(&mut pool, new_credits_vector[j]);
+            j = j + 1;
+        }; 
+        pool             
     }
 }
+
+
+

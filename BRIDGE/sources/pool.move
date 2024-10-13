@@ -56,6 +56,15 @@ module bridge::pool {
         }
     }
 
+    /// Function to close the pool (transitions from Open to Closed)
+    /// Only allowed if the pool is open and the threshold is reached
+    public fun close_pool(pool: &mut Pool) {
+        assert!(pool.state == PoolState::Open, 2);
+        assert!(pool.total_investment >= pool.threshold, 3);
+        pool.state = PoolState::Closed;
+    }
+    
+
     /// Function to open the pool (transitions from Build to Open)
     public fun open_pool(pool: &mut Pool) {
         assert!(pool.state == PoolState::Build, 2);

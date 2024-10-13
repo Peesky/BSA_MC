@@ -13,8 +13,8 @@ module bridge::credit {
     }
 
     /// Define the Credit object with visibility and required abilities
-    public struct Credit has key, store {
-        id: UID,           // Unique identifier for each credit
+    public struct Credit has  store, copy, drop {
+        id: u64,           // Unique identifier for each credit
         borrower: address, // Address of the borrower
         amount: u64,       // Amount requested by the borrower
         state: CreditState, // Current state of the credit
@@ -24,10 +24,10 @@ module bridge::credit {
     }
 
     /// Function to create a new credit
-    public fun create_credit(borrower: address, amount: u64, pool: address, infos: vector<u8>, risk: u64, ctx: &mut TxContext): Credit {
+    public fun create_credit(id: u64, borrower: address, amount: u64, pool: address, infos: vector<u8>, risk: u64, ctx: &mut TxContext): Credit {
         Credit {
-            id: object::new(ctx),
-            borrower: borrower,
+            id,
+            borrower,
             amount: amount,
             state: CreditState::Creating,
             pool: pool,
@@ -56,5 +56,10 @@ module bridge::credit {
     /// Public function to get the risk of a credit
     public fun get_credit_risk(credit: &Credit): u64 {
         credit.risk
+    }
+
+    /// Public function to get the amount of a credit
+    public fun get_credit_amount(credit: &Credit): u64 {
+        credit.amount
     }
 }
