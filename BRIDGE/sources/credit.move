@@ -19,18 +19,20 @@ module bridge::credit {
         amount: u64,       // Amount requested by the borrower
         state: CreditState, // Current state of the credit
         pool: address,     // Address of the pool
-        infos: vector<u8>  // Additional information
+        infos: vector<u8>,  // Additional information
+        risk: u64          // Risk associated with the credit
     }
 
     /// Function to create a new credit
-    public fun create_credit(borrower: address, amount: u64, pool: address, infos: vector<u8>, ctx: &mut TxContext): Credit {
+    public fun create_credit(borrower: address, amount: u64, pool: address, infos: vector<u8>, risk: u64, ctx: &mut TxContext): Credit {
         Credit {
             id: object::new(ctx),
             borrower: borrower,
             amount: amount,
             state: CreditState::Creating,
             pool: pool,
-            infos: infos
+            infos: infos,
+            risk: risk
         }
     }
 
@@ -44,5 +46,15 @@ module bridge::credit {
 
         // Transition to Ask state
         credit.state = CreditState::Ask;
+    }
+
+    /// Public function to get the state of a credit
+    public fun get_credit_state(credit: &Credit): CreditState {
+        credit.state
+    }
+
+    /// Public function to get the risk of a credit
+    public fun get_credit_risk(credit: &Credit): u64 {
+        credit.risk
     }
 }

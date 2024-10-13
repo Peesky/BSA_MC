@@ -66,4 +66,14 @@ module bridge::pool {
     public fun is_closed(pool: &Pool): bool {
         pool.state == PoolState::Closed
     }
+
+    /// Public function to get the state of a pool
+    public fun get_pool_state(pool: &Pool): PoolState {
+        pool.state
+    }
+
+    /// Public function to access the credits in the pool
+    public fun get_pool_credits(pool: &Pool): &vector<Credit> {
+        &pool.credits
+    }
 }
